@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NabiCo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #111;
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #00cc66;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    input {
+      width: 160px;
+    }
+    button {
+      background-color: #00cc66;
+      color: white;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #444;
+    }
+    .btn-danger {
+      background-color: #cc3300;
+    }
+    .btn-secondary {
+      background-color: #ffaa00;
+    }
+  </style>
+</head>
+<body>
+  <h1>NabiCo: Учёт кофе 5+1</h1>
+  <div>
+    <input type="text" id="name" placeholder="Имя клиента" />
+    <input type="text" id="phone" placeholder="Телефон" />
+    <button onclick="addPurchase()">Добавить покупку</button>
+  </div>
+  <table id="clientTable">
+    <thead>
+      <tr>
+        <th>Имя</th>
+        <th>Телефон</th>
+        <th>Покупки</th>
+        <th>Бонусы</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    let clients = JSON.parse(localStorage.getItem('clients')) || [];
+
+    function saveData() {
+      localStorage.setItem('clients', JSON.stringify(clients));
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector('#clientTable tbody');
+      tbody.innerHTML = '';
+      clients.forEach((client, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${client.name}</td>
+          <td>${client.phone}</td>
+          <td>${client.purchases}</td>
+          <td>${Math.floor(client.purchases / 5)}</td>
+          <td>
+            <button class="btn-secondary" onclick="redeemBonus(${index})">Выдать бонус</button>
+            <button class="btn-danger" onclick="deleteClient(${index})">Удалить</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addPurchase() {
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      if (!name || !phone) return alert('Введите имя и телефон');
+      const existing = clients.find(c => c.name === name && c.phone === phone);
+      if (existing) {
+        existing.purchases += 1;
+      } else {
+        clients.push({ name, phone, purchases: 1 });
+      }
+      saveData();
+      renderTable();
+    }
+
+    function redeemBonus(index) {
+      if (clients[index].purchases >= 5) {
+        clients[index].purchases -= 5;
+        alert('Выдан бонусный напиток!');
+        saveData();
+        renderTable();
+      } else {
+        alert('Недостаточно покупок для бонуса');
+      }
+    }
+
+    function deleteClient(index) {
+      if (confirm('Удалить клиента?')) {
+        clients.splice(index, 1);
+        saveData();
+        renderTable();
+      }
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
